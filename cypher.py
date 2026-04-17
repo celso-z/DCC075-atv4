@@ -66,21 +66,26 @@ class BlockCypher(ABC):
 class EBC(BlockCypher):
     def cypherData(self, data: str) -> str:
         data_blocks = self.separate_blocks(data, True)
+        print(f"Dados separados em blocos de tamanho {self.block_size}: ", data_blocks)
         cyphered_blocks = []
 
         for block in data_blocks:
             cyphered_blocks.append(self.cypher.cypher(block))
 
+        print("Blocos cifrados: ", cyphered_blocks)
         cypher_text:str = "".join(cyphered_blocks)
 
         return cypher_text
 
     def decypherData(self, data: str) -> str:
         data_blocks = self.separate_blocks(data)
+        print(f"Cifra separada em blocos de tamanho {self.block_size}: ", data_blocks)
         cyphered_blocks = []
 
         for block in data_blocks:
             cyphered_blocks.append(self.cypher.decypher(block))
+
+        print("Blocos decifrados ", cyphered_blocks)
         cypher_text:str = "".join(cyphered_blocks)
 
         return cypher_text[:-self.pad_size]
@@ -93,6 +98,7 @@ class CFB(BlockCypher):
 
     def cypherData(self, data: str) -> str:
         data_blocks = self.separate_blocks(data, True)
+        print(f"Dados separados em blocos de tamanho {self.block_size}: ", data_blocks)
         previous_block = self.init_vector * (self.block_size//len(self.init_vector) + 1)
         cyphered_blocks = []
 
@@ -104,12 +110,14 @@ class CFB(BlockCypher):
             cyphered_blocks.append(new_block)
             previous_block = new_block
 
+        print("Blocos cifrados: ", cyphered_blocks)
 
         cypher_text:str = "".join(cyphered_blocks)
         return cypher_text
 
     def decypherData(self, data: str) -> str:
         data_blocks = self.separate_blocks(data)
+        print(f"Cifra separada em blocos de tamanho {self.block_size}: ", data_blocks)
         previous_block = self.init_vector * (self.block_size//len(self.init_vector) + 1)
         cyphered_blocks = []
 
@@ -122,14 +130,25 @@ class CFB(BlockCypher):
             previous_block = block
 
 
+        print("Blocos decifrados ", cyphered_blocks)
         cypher_text:str = "".join(cyphered_blocks)
         return cypher_text[:-self.pad_size]
 
 def main():
-    cypher = VigenereCypher("76003")
-    blocking = CFB("aaa", cypher, 5)
+    cypher = VigenereCypher("aaaaa")
+
+    print("===================EBC=====================")
+    blocking = EBC(cypher, 5)
     text = blocking.cypherData("finalmenterm")
     dec = blocking.decypherData(text)
+    print(f"Resultado final sem padding: {dec}")
+    print("===========================================")
+    print("===================CFB=====================")
+    blocking = CFB("celso", cypher, 5)
+    text = blocking.cypherData("finalmenterm")
+    dec = blocking.decypherData(text)
+    print(f"Resultado final sem padding: {dec}")
+    print("===========================================")
     
 
 if __name__ == "__main__":
