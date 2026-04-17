@@ -85,12 +85,51 @@ class EBC(BlockCypher):
 
         return cypher_text[:-self.pad_size]
 
+class CFB(BlockCypher):
+    def __init__(self, init_vector:str, cypher:Cypher, block_size:int):
+        self.init_vector = init_vector
+        super().__init__(cypher, block_size)
+
+
+    def cypherData(self, data: str) -> str:
+        data_blocks = self.separate_blocks(data, True)
+        previous_block = self.init_vector * (self.block_size//len(self.init_vector) + 1)
+        cyphered_blocks = []
+
+        for block in data_blocks:
+            new_block = ""
+            cypher = self.cypher.cypher(previous_block)
+            for c, t in zip(cypher, block):
+                new_block = new_block + (chr(ord(c) ^ ord(t)))
+            cyphered_blocks.append(new_block)
+            previous_block = new_block
+
+
+        cypher_text:str = "".join(cyphered_blocks)
+        return cypher_text
+
+    def decypherData(self, data: str) -> str:
+        data_blocks = self.separate_blocks(data)
+        previous_block = self.init_vector * (self.block_size//len(self.init_vector) + 1)
+        cyphered_blocks = []
+
+        for block in data_blocks:
+            new_block = ""
+            cypher = self.cypher.cypher(previous_block)
+            for c, t in zip(cypher, block):
+                new_block = new_block + (chr(ord(c) ^ ord(t)))
+            cyphered_blocks.append(new_block)
+            previous_block = block
+
+
+        cypher_text:str = "".join(cyphered_blocks)
+        return cypher_text[:-self.pad_size]
+
 def main():
-    cypher = VigenereCypher("deceptive")
-    blocking = EBC(cypher, 30)
-    text = blocking.cypherData("weare")
+    cypher = VigenereCypher("76003")
+    blocking = CFB("aaa", cypher, 5)
+    text = blocking.cypherData("finalmenterm")
     dec = blocking.decypherData(text)
-    print(dec)
     
 
 if __name__ == "__main__":
